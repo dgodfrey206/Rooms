@@ -1,55 +1,55 @@
 #include <iostream>
+#include <string>
+#include <array> // C++11
 #include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <sstream>
-using namespace std;
 
-//external variables
+// external variables
 extern string NAME;
 extern int debug;
 extern string inv[];
 
-//global variables
-string location;
-string save_dat[21];
+// global variables
+std::string location;
+std::array<std::string, 21> save_dat; // it is recommended that you use std::array rather than raw C-style arrays
 
-void say(string msg)
+void say(std::string msg)
 {
-    cout << msg << endl;
-    return;
+    std::cout << msg << std::endl;
 }
 
-bool save_check(string dir)
+// Fixed bug:  Streams have an explicit boolean operator, using a stream as the return value of 
+//             a boolean returning function should emit a compiler error. Fixed as of 2014-10-17 4:30PM
+
+bool save_check(std::string dir)
 {
     location = "saves/" + dir + ".txt";
-    ifstream check(location.c_str());
-    return check;
+    std::ifstream check(location.c_str());
+    return check.is_open();
 }
 
-void load(string dir)
+void load(std::string dir)
 {
     int i = 3;
-    ifstream sav(dir.c_str());
-    sav >> save_dat[1];
-    sav >> save_dat[2];
+    std::ifstream sav(dir.c_str());
+    sav >> save_dat[1] >> save_dat[2];
+    
     if (save_dat[2] != "inv_start")
     {
-        say("FATAL ERROR AT rooms_api.load(" + dir.c_str() + ")");
+        say("FATAL ERROR AT rooms_api.load(" + dir + ")");
         say("Your save failed to load! Please create a new one to avoid this message.");
         exit(2);
     }
-    while (save_dat[i] != "inv_end")
+    
+    do
     {
-        sav >> save_dat[i];
-        if (save_dat[i] == "save_end")
+        if (save_dat[i++] == "save_end")
         {
-            say("FATAL ERROR AT rooms_api.load" + dir.c_str() + ")");
+            say("FATAL ERROR AT rooms_api.load" + dir + ")");
             say("Your save failed to load! Please create a new one to avoid this message.");
             exit(2);
         }
-        i++;
-    }
-
+    } while (save_dat[i] != "inv_end" || sav >> save_dat[i])
 }
-
